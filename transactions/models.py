@@ -5,6 +5,7 @@ from accounts.models import UserBankAccount
 
 
 class Transaction(models.Model):
+    id = models.BigAutoField(primary_key=True)
     account = models.ForeignKey(
         UserBankAccount,
         related_name='transactions',

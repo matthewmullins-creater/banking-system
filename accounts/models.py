@@ -13,6 +13,7 @@ from .managers import UserManager
 
 class User(AbstractUser):
     username = None
+    id = models.BigAutoField(primary_key=True)
     email = models.EmailField(unique=True, null=False, blank=False)
 
     objects = UserManager()
@@ -31,6 +32,7 @@ class User(AbstractUser):
 
 
 class BankAccountType(models.Model):
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=128)
     maximum_withdrawal_amount = models.DecimalField(
         decimal_places=2,
@@ -110,6 +112,7 @@ class UserBankAccount(models.Model):
 
 
 class UserAddress(models.Model):
+    id = models.BigAutoField(primary_key=True)
     user = models.OneToOneField(
         User,
         related_name='address',
