@@ -2,7 +2,7 @@ import datetime
 
 from django import forms
 from django.conf import settings
-
+from decimal import Decimal
 from .models import Transaction
 
 
@@ -43,25 +43,48 @@ class DepositForm(TransactionForm):
 
 
 class WithdrawForm(TransactionForm):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.account = getattr(user, 'account', None)
 
     def clean_amount(self):
-        account = self.account
-        min_withdraw_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
-        max_withdraw_amount = (
-            account.account_type.maximum_withdrawal_amount
-        )
-        balance = account.balance
+        if self.account is None:
+            raise forms.ValidationError(
+                'You do not have a bank account. Please create one before withdrawing.'
+            )
+        # account = self.account
+        # min_withdraw_amount = settings.MINIMUM_WITHDRAWAL_AMOUNT
+        # max_withdraw_amount = (
+        #     account.account_type.maximum_withdrawal_amount
+        # )
+        # balance = account.balance
 
         amount = self.cleaned_data.get('amount')
+        if amount is None:
+            raise forms.ValidationError('Amount is required.')
+        
+        try:
+            min_withdraw = getattr(settings, 'MINIMUM_WITHDRAWAL_AMOUNT', Decimal("1.00"))
+            if not isinstance(min_withdraw, Decimal):
+                min_withdraw = Decimal(str(min_withdraw))
+        except Exception:
+            min_withdraw = Decimal("1.00")
+        
+        max_withdraw = self.account.account_type.maximum_withdrawal_amount
+        balance = self.account.balance
 
-        if amount < min_withdraw_amount:
+        if amount <= 0:
+            raise forms.ValidationError('Amount must be greater than 0.')
+
+        if amount < min_withdraw:
             raise forms.ValidationError(
-                f'You can withdraw at least {min_withdraw_amount} $'
+                f'You can withdraw at least {min_withdraw} $'
             )
 
-        if amount > max_withdraw_amount:
+        if amount > max_withdraw:
             raise forms.ValidationError(
-                f'You can withdraw at most {max_withdraw_amount} $'
+                f'You can withdraw at most {max_withdraw} $'
             )
 
         if amount > balance:

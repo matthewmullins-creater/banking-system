@@ -69,7 +69,7 @@ class TransactionCreateMixin(LoginRequiredMixin, CreateView):
         kwargs = super().get_form_kwargs()
         account = getattr(self.request.user, 'account', None)
         kwargs.update({
-            'account': account
+            'account': account,
         })
         return kwargs
 
@@ -99,12 +99,18 @@ class DepositMoneyView(TransactionCreateMixin):
             user=user,
             defaults={
                 'account_type': default_type,
-                'account_no': (UserBankAccount.objects.aggregate(m=models.Max('account_no'))['m'] or 1000000) + 1,
+                'account_no': (UserBankAccount.objects.aggregate(m=models.Max('account_no'))['m'] or 10000000) + 1,
                 'gender': 'U',
                 'balance': Decimal('0.00'),
             },
         )
         return acct, created
+
+    def dispatch(self, request, *args, **kwargs):
+        self.account = getattr(request.user, 'account', None)
+        if self.account is None:
+            self.account, _ = self._get_or_create_account(request.user)
+        return super().dispatch(request, *args, **kwargs)
 
     @transaction.atomic
     def form_valid(self, form):
@@ -113,16 +119,12 @@ class DepositMoneyView(TransactionCreateMixin):
         if not amount or amount <= 0:
             form.add_error('amount', 'Amount must be positive.')
             return self.form_invalid(form)
-        
-        account = getattr(self.request.user, 'account', None)
 
-        if account is None:
-            account, created = self._get_or_create_account(self.request.user)
-            if account is None:
-                messages.error(self.request, 'No account type configured; contact support.')
-                return self.form_invalid(form)
+        if self.account is None:
+            messages.error(self.request, "No bank account found; please try again.")
+            return self.form_invalid(form)
 
-        account = UserBankAccount.objects.select_for_update().get(pk=account.pk)
+        account = UserBankAccount.objects.select_for_update().get(pk=self.account.pk)
         
         if not account.initial_deposit_date:
             now = timezone.now().date()
@@ -145,7 +147,7 @@ class DepositMoneyView(TransactionCreateMixin):
             ]
         )
         account.refresh_from_db(fields=['balance'])
-        
+
         form.instance.account = account
         form.instance.balance_after_transaction = account.balance
 
@@ -156,10 +158,21 @@ class DepositMoneyView(TransactionCreateMixin):
 
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        messages.error(
+            self.request,
+            'There was an error with your deposit. Please correct the errors below.'
+        )
+        return super().form_invalid(form)
 
 class WithdrawMoneyView(TransactionCreateMixin):
     form_class = WithdrawForm
     title = 'Withdraw Money from Your Account'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
     def get_initial(self):
         initial = {'transaction_type': WITHDRAWAL}
