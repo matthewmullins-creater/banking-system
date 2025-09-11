@@ -47,7 +47,11 @@
         {% endfor %}
         <tr class="bg-gray-600 text-white">
             <th class="px-4 py-2 text-right" colspan="3">Final Balance</th>
+            {% if account %}
             <th class="px-4 py-2 text-center">$ {{ account.balance }}</th>
+            {% else %}
+            <th class="px-4 py-2 text-center">N/A</th>
+            {% endif %}
         </tr>
         </tbody>
     </table>
