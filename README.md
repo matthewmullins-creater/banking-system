@@ -29,11 +29,11 @@ Be sure you have the following installed on your development machine:
 
 ## Requirements
 
-+ celery==4.4.7
-+ Django==3.2
-+ django-celery-beat==2.0.0
-+ python-dateutil==2.8.1
-+ redis==3.5.3
++ celery==5.4.0 
++ Django==4.2.2 
++ django-celery-beat==2.6.0
++ python-dateutil==2.8.2
++ redis==5.3.1
 
 ## Install Redis Server
 
@@ -50,7 +50,7 @@ To setup a local development environment:
 
 Create a virtual environment in which to install Python pip packages. With [virtualenv](https://pypi.python.org/pypi/virtualenv),
 ```bash
-virtualenv venv            # create a virtualenv
+python3 -m venv venv       # create a virtualenv
 source venv/bin/activate   # activate the Python virtualenv 
 ```
 
