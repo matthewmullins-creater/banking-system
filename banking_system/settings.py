@@ -134,10 +134,27 @@ MINIMUM_WITHDRAWAL_AMOUNT = 10
 LOGIN_REDIRECT_URL = 'home'
 
 # Celery Settings
-CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://default:wDd0kR4jGFjI4ReX6iHkA4QQb38AYK3J@redis-18511.c17.us-east-1-4.ec2.redns.redis-cloud.com:18511/0'
+# Redis is used for celery task queue management and scheduled background tasks,
+# Redis served as both message broker and Result backend for Celery.
+# The primary use case for Redis/Celery in this project is automated monthly interest calculation
+# This scheduled task runs on the 1st of each month to calculate and apply interest to all eligible bank accounts.
+# This system supports different bank account types with configurable interest rates.
+CELERY_RESULT_BACKEND = 'redis://default:wDd0kR4jGFjI4ReX6iHkA4QQb38AYK3J@redis-18511.c17.us-east-1-4.ec2.redns.redis-cloud.com:18511/1'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+### **Summary**
+
+# Redis is essential in this Django banking system because it enables **automated, scheduled interest calculations** that run in the background without blocking the main web application. This ensures that:
+
+# - Interest is calculated and applied automatically on schedule
+# - The web application remains responsive during interest calculations
+# - Multiple bank account types with different interest rates are handled efficiently
+# - Transaction records are created for all interest payments
+# - The system can scale to handle many accounts and complex interest calculations
+
+# Without Redis and Celery, the banking system would require manual intervention to calculate and apply interest, which would be impractical for a real banking application.

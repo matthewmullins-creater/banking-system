@@ -105,10 +105,10 @@ class UserBankAccount(models.Model):
         returns [2, 4, 6, 8, 10, 12] for every 2 months interval
         """
         interval = int(
-            12 / self.account_type.interest_calculation_per_year
-        )
-        start = self.interest_start_date.month
-        return [i for i in range(start, 13, interval)]
+            12 / self.account_type.interest_calculation_per_year 
+        ) # 12/12 = 1
+        start = self.interest_start_date.month # 10
+        return [i for i in range(start, 13, interval)] 
 
 
 class UserAddress(models.Model):

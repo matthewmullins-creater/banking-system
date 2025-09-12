@@ -1,13 +1,13 @@
 from django.utils import timezone
 
-from celery.decorators import task
+from celery import shared_task
 
 from accounts.models import UserBankAccount
 from transactions.constants import INTEREST
 from transactions.models import Transaction
 
 
-@task(name="calculate_interest")
+@shared_task(name="calculate_interest")
 def calculate_interest():
     accounts = UserBankAccount.objects.filter(
         balance__gt=0,

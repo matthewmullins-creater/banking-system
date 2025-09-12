@@ -14,6 +14,11 @@ app = Celery('banking_system')
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys
 #   should have a `CELERY_` prefix.
+app.conf.update(
+    broker_connection_retry_on_startup=True,
+    broker_connection_max_retries=100,
+    broker_heartbeat=30,
+)
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Load task modules from all registered Django app configs.
